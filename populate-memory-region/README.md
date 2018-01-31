@@ -7,7 +7,7 @@
 # How to execute
 - Compile: gcc <file.c> -o <exec-name>
 - ./exect-name
-    For example:
-    gcc read_memory_map.c -o read_map
-    ./read_map or ./read_map <pid>
+- For example:
+     - gcc read_memory_map.c -o read_map
+     - ./read_map or ./read_map <pid>
 
