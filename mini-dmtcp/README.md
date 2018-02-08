@@ -1,3 +1,11 @@
+# Overview
+DMTCP is a widely used software package for checkpoint-restart: http://dmtcp.sourceforge.net. However, you do not need any prior knowledge of DMTCP for this assignment. This software produce is self-contained. I have written a shared library, libckpt.so. Given an arbitrary application in C or C++, you will then run it with this library with the following command-line:
+
+LD_PRELOAD=/path/to/libckpt.so ./myprog
+where /path/to/libckpt.so must be an absolute pathname for the libckpt.so.
+
+Makefile is provided for this project
+
 # How to build
  - Run "make clean" to removes all object/binary files
  - Run "make check"
