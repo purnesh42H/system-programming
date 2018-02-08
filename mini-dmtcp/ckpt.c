@@ -134,7 +134,7 @@ void signal_handler(int signo) {
 		lseek(cur_proc_map_file_descriptor, -1, SEEK_CUR);
 		sec_header = get_section_header(cur_proc_map_file_descriptor);
 		bool is_sys_call = is_sys_call_proc(cur_proc_map_file_descriptor);
-		if(sec_header.is_readable == 1 && is_sys_call) {
+		if(sec_header.is_readable == 1 && !is_sys_call) {
 				write(checkpoint_file_descriptor, &sec_header, sizeof(struct section_header));
 		}
 	}

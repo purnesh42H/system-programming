@@ -42,6 +42,7 @@ void restore_memory() {
 
 	// Copy the registers from the file header of your checkpoint image file into some pre-allocated memory in your data segment.
 	// The memory of your myrestart process should no longer conflict with the memory to be restored from the checkpoint image.
+  memset(&g_ucp_ref, 0, sizeof(g_ucp_ref));
 	int rec = read(file_descriptor, &g_ucp_ref, sizeof(ucontext_t));
 	//printf("%d", rec);
 
