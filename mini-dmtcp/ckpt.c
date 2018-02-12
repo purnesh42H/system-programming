@@ -104,42 +104,44 @@ int read_cur_proc_mem_map(int pid) {
 	return file_descriptor;
 }
 
+int is_restarted = 0;
 /* Signal Handler to trigger the checkpoint
 To trigger the checkpoint we just need to call kill -12 PID from command line */
 void signal_handler(int signo) {
 	char read_character;
 	struct section_header sec_header;
 
-	// get the context(stack,register etc.)
 	ucontext_t ucp;
-	getcontext(&ucp);
+	printf("hey\n");
+	if (!is_restarted) {
+		is_restarted = 1;
+		getcontext(&ucp);
+		// read file descriptor for the memory layout of the current process
+		int cur_proc_map_file_descriptor = open("/proc/self/maps", O_RDONLY);
+		// create the output checkpoint file
+		int checkpoint_file_descriptor = open("./myckpt", O_CREAT | O_WRONLY | O_APPEND, 0666);
 
-	// read file descriptor for the memory layout of the current process
-	int cur_proc_map_file_descriptor = open("/proc/self/maps", O_RDONLY);
-	// create the output checkpoint file
-	int checkpoint_file_descriptor = open("./myckpt", O_CREAT | O_WRONLY | O_APPEND, 0666);
-
-	if(cur_proc_map_file_descriptor < 0) {
-		printf("Exiting with error while reading process map %d", cur_proc_map_file_descriptor);
-		exit(1);
-	} else if (checkpoint_file_descriptor < 0) {
-		printf("Exiting with error while creating checkpoint file %d", checkpoint_file_descriptor);
-		exit(1);
-	}
-
-	// saving the registers to the checkpoint file
-	write(checkpoint_file_descriptor, &ucp, sizeof(ucontext_t));
-
-	while (read(cur_proc_map_file_descriptor, &read_character, 1) > 0) {
-		lseek(cur_proc_map_file_descriptor, -1, SEEK_CUR);
-		sec_header = get_section_header(cur_proc_map_file_descriptor);
-		bool is_sys_call = is_sys_call_proc(cur_proc_map_file_descriptor);
-		if(sec_header.is_readable == 1 && !is_sys_call) {
-				write(checkpoint_file_descriptor, &sec_header, sizeof(struct section_header));
+		if(cur_proc_map_file_descriptor < 0) {
+			printf("Exiting with error while reading process map %d", cur_proc_map_file_descriptor);
+			exit(1);
+		} else if (checkpoint_file_descriptor < 0) {
+			printf("Exiting with error while creating checkpoint file %d", checkpoint_file_descriptor);
+			exit(1);
 		}
+		// saving the registers to the checkpoint file
+		write(checkpoint_file_descriptor, &ucp, sizeof(ucontext_t));
+
+		while (read(cur_proc_map_file_descriptor, &read_character, 1) > 0) {
+			lseek(cur_proc_map_file_descriptor, -1, SEEK_CUR);
+			sec_header = get_section_header(cur_proc_map_file_descriptor);
+			bool is_sys_call = is_sys_call_proc(cur_proc_map_file_descriptor);
+			if(sec_header.is_readable == 1 && !is_sys_call) {
+					write(checkpoint_file_descriptor, &sec_header, sizeof(struct section_header));
+			}
+		}
+		close(checkpoint_file_descriptor);
+		close(cur_proc_map_file_descriptor);
 	}
-	close(checkpoint_file_descriptor);
-	close(cur_proc_map_file_descriptor);
 }
 
 __attribute__((constructor))

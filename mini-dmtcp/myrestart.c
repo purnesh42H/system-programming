@@ -42,7 +42,7 @@ void restore_memory() {
 
 	// Copy the registers from the file header of your checkpoint image file into some pre-allocated memory in your data segment.
 	// The memory of your myrestart process should no longer conflict with the memory to be restored from the checkpoint image.
-  memset(&g_ucp_ref, 0, sizeof(g_ucp_ref));
+	memset(&g_ucp_ref, 0, sizeof(g_ucp_ref));
 	int rec = read(file_descriptor, &g_ucp_ref, sizeof(ucontext_t));
 	//printf("%d", rec);
 
@@ -75,9 +75,7 @@ void restore_memory() {
 
 	// Now, you need to jump into the old program and restore the old registers.
 	// In a previous step, you had copied the old registers into your data segment.
-	// Now use setcontext() to restore those as the working registers.
-	printf("hey\n");
-	fflush(stdout);
+	// Now use setcontext() to restore those as the working registers
 	setcontext(&g_ucp_ref);
 	//printf("hi");
 	close(file_descriptor);
