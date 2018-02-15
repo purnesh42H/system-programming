@@ -52,10 +52,10 @@ struct memory_block {
 		- Mark the chunk as used (b->free=0;)
 		– Otherwise: we extend the heap.
 	
-	Note the use of the last: find block put the pointer to the last visited chunk in
-	last, so we can access it during the extension without traversing the whole list
-	again. Otherwise: we extended the heap (which is empty at that point.)
-	Note that our function extend heap works here with last=NULL.
+	Note while finding the new block I put the pointer to the last visited chunk in
+	last, so I can access it during the extension without traversing the whole list
+	again. Otherwise I extend the heap (which is empty at that point.)
+	Note that the function extend heap works here with last=NULL.
 
 - Important Design Decisions
 	- I am making sure that my block is always aligned so that while allocating memory I have to only allign the requested size.
