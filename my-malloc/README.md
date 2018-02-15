@@ -21,3 +21,18 @@
   - Run the "make" to create the shared library i.e. (.so) file
   - run your test program using LD_PRELOAD=`pwd`/libmalloc.so <your output file>. For eg: LD_PRELOAD=`pwd`/libmalloc.so ./test1
   
+# Design
+- Struct to hold the block information 
+```c
+struct memory_block {
+	size_t size; // size of the block (8-byte aligned)
+	block next; // Address of the next block. It is important because we want to 
+             // traverse from one block to another to find the free block and also join the 
+            // free blocks if they are adjacent to each other to decrease fregmentation
+	block prev; // Address of the previous block. This is very important during free as 
+	int free; // To check if the block is free
+	void *ptr; // This pointer stores the address of the memory block's data i.e. metadata. 
+           // It is useful to validate the block's address as it tells us that the block is alloced to through this malloc library.
+	char data [1]; //Meta data for each block
+};
+```
