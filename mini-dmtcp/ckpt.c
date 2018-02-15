@@ -7,16 +7,21 @@
 #include<stdlib.h>
 #include <sys/types.h>
 #include <stdbool.h>
+#include <limits.h>
 
 
 /* Struct to store address range of memory and permissions */
 struct section_header {
 	char *start_address;
 	char *end_address;
+	size_t length;
 	int is_readable;
 	int is_writeable;
 	int is_executable;
+	int is_stack;
 };
+
+int is_restarted = 0;
 
 /* Read rest of the line of memory map and find the area/path of the current process */
 void read_path(int fd, char* name) {
@@ -45,7 +50,6 @@ bool is_sys_call_proc(int file_descriptor) {
 	read_path(file_descriptor, path);
 	return (strstr(path, "vvar") != NULL || strstr(path, "vdso") != NULL || strstr(path, "vsyscall") != NULL);
 }
-
 /* Read hexa decimal number and assign it to the passed value
 Taken from mtcp_readhex() (found in: src/mtcp/mtcp_util.ic ,
 or online a: http://www.ccs.neu.edu/course/cs5600f15/dmtcp/mtcp__util_8ic.html ) */
@@ -74,13 +78,13 @@ void copy_permissions(int file_descriptor, int *read_perm, int *write_perm, int 
 		*read_perm = 0;
 	}
 
-	if (rwxp[0] == 'w') {
+	if (rwxp[1] == 'w') {
 		*write_perm = 1;
 	} else {
 		*write_perm = 0;
 	}
 
-	if (rwxp[0] == 'x') {
+	if (rwxp[2] == 'x') {
 		*exec_perm = 1;
 	} else {
 		*exec_perm = 0;
@@ -93,7 +97,9 @@ struct section_header get_section_header(int file_descriptor) {
 
 	copy_address(file_descriptor, &sec_header.start_address);
 	copy_address(file_descriptor, &sec_header.end_address);
+	sec_header.length = sec_header.end_address - sec_header.start_address;
 	copy_permissions(file_descriptor, &sec_header.is_readable, &sec_header.is_writeable, &sec_header.is_executable);
+	sec_header.is_stack = 0;
 
 	return sec_header;
 }
@@ -103,19 +109,16 @@ int read_cur_proc_mem_map(int pid) {
 	int file_descriptor = open("/proc/self/maps", O_RDONLY);
 	return file_descriptor;
 }
-
-int is_restarted = 0;
 /* Signal Handler to trigger the checkpoint
 To trigger the checkpoint we just need to call kill -12 PID from command line */
 void signal_handler(int signo) {
 	char read_character;
 	struct section_header sec_header;
-
 	ucontext_t ucp;
-	printf("hey\n");
-	if (!is_restarted) {
+
+	getcontext(&ucp);
+	if (is_restarted == 0) {
 		is_restarted = 1;
-		getcontext(&ucp);
 		// read file descriptor for the memory layout of the current process
 		int cur_proc_map_file_descriptor = open("/proc/self/maps", O_RDONLY);
 		// create the output checkpoint file
@@ -135,8 +138,14 @@ void signal_handler(int signo) {
 			lseek(cur_proc_map_file_descriptor, -1, SEEK_CUR);
 			sec_header = get_section_header(cur_proc_map_file_descriptor);
 			bool is_sys_call = is_sys_call_proc(cur_proc_map_file_descriptor);
+
 			if(sec_header.is_readable == 1 && !is_sys_call) {
+					printf("%zd %p-%p %d %d %d\n", sec_header.length,
+						sec_header.start_address, sec_header.end_address, sec_header.is_readable, sec_header.is_writeable, sec_header.is_executable);
+					fflush(stdout);
 					write(checkpoint_file_descriptor, &sec_header, sizeof(struct section_header));
+					void *addr = (void *)sec_header.start_address;
+					write(checkpoint_file_descriptor, addr, sec_header.length);
 			}
 		}
 		close(checkpoint_file_descriptor);

@@ -31,7 +31,7 @@ gdb:
 	gdb --args ./restart myckpt
 
 check:	libckpt.so prog restart
-	(sleep 3 && kill -12 `pgrep -n hello` && sleep 2 && pkill -9 hello) &
+	(sleep 3 && kill -12 `pgrep -n hello` && sleep 10 && pkill -9 hello) &
 	LD_PRELOAD=`pwd`/libckpt.so ./hello
 	(sleep 2 &&  pkill -9 restart) &
 	make res
