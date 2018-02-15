@@ -43,8 +43,22 @@ struct memory_block {
 	char data [1]; 	// Meta data for each block. The pointer to this mark the end of block.
 };
 ```
+- Malloc Logic
+	- First align the requested size
+	- If heap_start is initialized:
+		– Search for a free chunk wide enough;
+	– If new chunk is found:
+		- Try to split the block using Buddy
+		- Mark the chunk as used (b->free=0;)
+		– Otherwise: we extend the heap.
+	
+	Note the use of the last: find block put the pointer to the last visited chunk in
+	last, so we can access it during the extension without traversing the whole list
+	again. Otherwise: we extended the heap (which is empty at that point.)
+	Note that our function extend heap works here with last=NULL.
 
 - Important Design Decisions
 	- I am making sure that my block is always aligned so that while allocating memory I have to only allign the requested size.
 	- While traversing the linked list to find the free block I am keeping track of last visited node so the malloc function can easily extends the end of the heap if no fitting chunk found
 	- the split_block function in [utils.c](utils.c) cut the block passed in argument to make data block of the wanted size.
+
