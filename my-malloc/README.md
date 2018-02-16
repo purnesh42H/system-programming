@@ -28,19 +28,19 @@
 	- malloc.h contains the functions of malloc library malloc, calloc, realloc, free, memalign, posix_memalign
 	- Each of the malloc functions are in separate .c files
 	
-- Struct to hold the block information 
+- Struct to hold the block information i.e. meta information about the allocated memory
 ```c
 struct memory_block {
-	size_t size; 	// size of the block (8-byte aligned)
+	size_t size; 	// size of the block or the requested memory(8-byte aligned)
 	block next;  	// Address of the next block. It is important because we want to 
               	     	// traverse from one block to another to find the free block and also join the 
-            		// free blocks if they are adjacent to each other to decrease fregmentation
+            		// free blocks if they are adjacent to each other to decrease fregmentation. I jump from meta to meta.
 	block prev; 	// Address of the previous block. This is very important during free to combine adjacent free blocks
-	int free; 	// To check if the block is free
+	int free; 	// To check if the block is free i.e. we can allocate the new memory here as it is not mapped to any.
 	void *ptr; 	// This pointer stores the address of the memory block's data i.e. metadata. 
            		// It is useful to validate the block's address as it tells us that the 
-			// block is alloced to through this malloc library.
-	char data [1]; 	// Meta data for each block. The pointer to this mark the end of block.
+			// block is alloced through this malloc library. Its helpful during free and realloc
+	char data [1]; 	// Meta data for each block. The pointer to this mark the end of block as it at the end in struct.
 };
 ```
 - Malloc Logic
@@ -61,4 +61,5 @@ struct memory_block {
 	- I am making sure that my block is always aligned so that while allocating memory I have to only allign the requested size.
 	- While traversing the linked list to find the free block I am keeping track of last visited node so the malloc function can easily extends the end of the heap if no fitting chunk found
 	- the split_block function in [utils.c](utils.c) cut the block passed in argument to make data block of the wanted size.
+	- I have kept the "char data[1]" field in my struct which marks the end of block. This helps us know that from here on the memory is allocated till size specified in size attribute of struct
 
