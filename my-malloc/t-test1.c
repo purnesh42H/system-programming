@@ -9,7 +9,7 @@
  */
 
 #define USE_PTHREADS	1
-#define USE_MALLOC	0
+#define USE_MALLOC	1
 #define USE_SPROC	0
 #define USE_THR		0
 

@@ -89,16 +89,15 @@ block insert_block(void *heap_start, block new, size_t s) {
 		}
 	}
 	new->size = s;
-	new->next = NULL;
-	new->free = 0;
-	new->ptr = new->data;
 	if (heap_start) {
 		start->next = new;
 		new->prev = start;
 	} else {
 		new->prev = NULL;
 	}
-
+	new->next = NULL;
+	new->free = 0;
+	new->ptr = new->data;
 	return new;
 }
 
@@ -143,7 +142,7 @@ block extend_heap(block last, size_t size) {
 		}
 	}
 
-  if(mlock(b, sb) == 0) {
+	if(mlock(b, sb) == 0) {
 		b->size = sb; // size of the new block is page size
 		b->buddy_order = get_buddy_order(sb);
 		b->next = NULL;
