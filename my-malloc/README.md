@@ -23,10 +23,10 @@
 
 # Design
 ## Code Strucure
-	- There are two header files utils.h and malloc.h
-	- Utils.h contains all the helper functions like aligning the size, splitting blocks etc.
-	- malloc.h contains the functions of malloc library malloc, calloc, realloc, free, memalign, posix_memalign
-	- Each of the malloc functions are in separate .c files
+- There are two header files utils.h and malloc.h
+- Utils.h contains all the helper functions like aligning the size, splitting blocks etc.
+- malloc.h contains the functions of malloc library malloc, calloc, realloc, free, memalign, posix_memalign
+- Each of the malloc functions are in separate .c files
 
 ## Struct to hold the block information
 ```c
@@ -52,26 +52,26 @@ struct memory_block {
 - My struct stores also stores free status of each block
 
 ## Malloc Logic
-	- First 8-byte align the requested size
-	- If heap_start is initialized, search for a free chunk wide enough. This will become start of the heap
-  - While searching, keep splitting the blocks using the buddy logic. Read Buddy Allocation [here](https://en.wikipedia.org/wiki/Buddy_memory_allocation)
-  - Assign the requested memory to the block wide enough.
-	– If new chunk is found:
-		- Try to split the block using Buddy
-		- Mark the chunk as used (b->free=0;)
-		– if no fitting block found according to buddy, I extend the heap.
+- First 8-byte align the requested size
+- If heap_start is initialized, search for a free chunk wide enough. This will become start of the heap
+- While searching, keep splitting the blocks using the buddy logic. Read Buddy Allocation [here](https://en.wikipedia.org/wiki/Buddy_memory_allocation)
+- Assign the requested memory to the block wide enough.
+– If new chunk is found,
+  - Try to split the block using Buddy
+	- Mark the chunk as used (b->free=0;)
+	– if no fitting block found according to buddy, I extend the heap.
 
 	Note while finding the new block I put the pointer to the last visited chunk in
 	last, so I can access it during the extension without traversing the whole list
 	again. Otherwise I extend the heap (which is empty at that point.)
 	Note that the function extend heap works here with last=NULL.
 
-  ## Free logic
-    - Validate the address using the block's pointer. If the pointer is pointing to end of meta block, it is a valid pointer
-    - If valid, get the block pointed by pointer. Free the block.
-    - Join the buddy blocks if they are also free and merge them to a single block. Increase the order and size accordingly.
+## Free logic
+- Validate the address using the block's pointer. If the pointer is pointing to end of meta block, it is a valid pointer
+- If valid, get the block pointed by pointer. Free the block.
+- Join the buddy blocks if they are also free and merge them to a single block. Increase the order and size accordingly.
 
-  ## Important Design Decisions
-  	- I am making sure that my block is always aligned so that while allocating memory I have to only align the requested size.
-  	- While traversing the linked list to find the free block I am keeping track of last visited node so the malloc function can easily extends the end of the heap if no fitting chunk found
-  	- the split_block function in [utils.c](utils.c) cut the block passed in argument to make data block of the wanted size and all splitted blocks become part of linked list, so that next time there wont be need to split if any of the existing can satisfy the requested memory.
+## Important Design Decisions
+- I am making sure that my block is always aligned so that while allocating memory I have to only align the requested size.
+- While traversing the linked list to find the free block I am keeping track of last visited node so the malloc function can easily extends the end of the heap if no fitting chunk found
+- the split_block function in [utils.c](utils.c) cut the block passed in argument to make data block of the wanted size and all splitted blocks become part of linked list, so that next time there wont be need to split if any of the existing can satisfy the requested memory.
