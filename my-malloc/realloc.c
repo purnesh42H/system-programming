@@ -9,34 +9,48 @@ void *realloc(void *p, size_t size) {
 	if (valid_address (heap_start, p)) { // Reallocate only if its a valid address, as we need to free the old address
 		s = align8(size);
  		b = get_block(p);
- 		if (b->size >= s) {
-			if (b->size - s >= ( block_size() + 8)) { // Same as malloc, split if chunk is bigger than required memory
- 				split_block (b, s);
+		if ((size < THRESHOLD || b->size < THRESHOLD) && b->size >= s) {
+
+			if (mlock(b, s) == 0) {
+				if (b->buddy_order > get_buddy_order(s)) { // Same as malloc, split if chunk is bigger than required memory
+	 				split_block (b, s);
+				}
+				b->free = 0;
+				munlock(b, s);
+			} else {
+				errno = ENOMEM; // Error if no more memory can be allocated
+ 	 	 	 	return(NULL);
 			}
 		} else {
-
-			if (b->next && b->next->free && (b->size + block_size() + b->next->size) >= s) { // try joining the next free chunk
-				join_free_chunks(b);
-				if (b->size - s >= ( block_size() + 8)) {
-					split_block (b, s);
+			if ((size < THRESHOLD || b->size < THRESHOLD) && b->next && b->next->free && (b->size + block_size() + b->next->size) >= s) { // try joining the next free chunk
+				if (mlock(b, s) == 0) {
+					buddy_join(b);
+					if (b->buddy_order > get_buddy_order(s)) {
+						split_block (b, s);
+					}
+					b->free = 0;
+					munlock(b, s);
 				}
 			} else {
 					newp = malloc(s); // allocate the memory
 					if (!newp) {
-						errno = ENOENT;
+						errno = ENOMEM;
 			 			return (NULL);
 					}
 					new = get_block(newp);
-
-					copy_block(b, new); // copy data from previous to new block
+					if(mlock(new, s) == 0) {
+						copy_block(b, new); // copy data from previous to new block
+						munlock(new, s);
+					} else {
+						errno = ENOMEM; // Error if no more memory can be allocated
+		 	 	 	 	return(NULL);
+					}
 					free(p); // free the old one
-					printf("Successfully re-allocated %zd bytes to address %p\n", s, newp);
 					return (newp);
 				}
     	}
-			printf("Successfully re-allocated %zd bytes to address %p\n", s, newp);
  			return (p); // return the old one
 		}
-		errno = ENOENT;
+		errno = ENOMEM;
 		return (NULL);
 }

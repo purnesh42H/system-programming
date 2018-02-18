@@ -1,18 +1,71 @@
 #include "utils.h"
-size_t alignn(size_t s, size_t n) {
-	size_t alignment = n;
+
+const int SMALLEST_BLOCK = 64;
+
+int get_two_power(size_t s) {
 	int power = 0;
-	while (alignment > 0) {
-		alignment = alignment / 2;
+	while (s > 1) {
+		s = s / 2;
 		power++;
 	}
+	return power;
+}
 
-	return (((((s) -1) >> power) << power) + n);
+block join_free_chunks(block b) {
+	if (b->next && b->next->free) {
+		b->size += b->next->size + block_size();
+		b->next = b->next->next;
+		if (b->next) {
+			b->next->prev = b;
+		}
+		b->buddy_order += 1;
+	}
+	return (b);
+}
+
+int get_buddy_order(size_t s) {
+	size_t lower = SMALLEST_BLOCK;
+	int order = 0;
+	while (lower < s) {
+		lower = lower * 2;
+		order++;
+	}
+	return order;
+}
+
+void buddy_split(block b) {
+	b->size = b->size / 2;
+	block newb = (block)(b->data + b->size);
+	newb->size = b->size - block_size();
+	newb->next = b->next;
+	newb->prev = b;
+	b->next = newb;
+	b->buddy_order = b->buddy_order - 1;
+	newb->buddy_order = b->buddy_order;
+	newb->free = 1;
+	b->ptr = b->data;
+  newb->ptr = newb->data;
+}
+
+block buddy_join(block b) {
+	while (b->prev && b->prev->free) {
+		b = b->prev;
+	}
+	while(b->next && b->next->free) {
+		b = join_free_chunks(b);
+	}
+	return b;
 }
 
 
+
+size_t alignn(size_t s, size_t alignment) {
+	int power = get_two_power(alignment);
+	return (((((s) -1) >> power) << power) + alignment);
+}
+
 size_t align8(size_t s) {
-	return (((((s) -1) >> 3) << 3) + 8);
+	return alignn(s, 8);
 }
 
 size_t block_size() {
@@ -27,9 +80,33 @@ block get_block (void *p) {
 	return (p = tmp -= block_size());
 }
 
+block insert_block(void *heap_start, block new, size_t s) {
+	block start;
+	if (heap_start) {
+		start = heap_start;
+		while(start->next != NULL) {
+			start = start->next;
+		}
+	}
+	new->size = s;
+	new->next = NULL;
+	new->free = 0;
+	new->ptr = new->data;
+	if (heap_start) {
+		start->next = new;
+		new->prev = start;
+	} else {
+		new->prev = NULL;
+	}
+
+	return new;
+}
+
 block find_free_block(void *heap_start, block *last, size_t size) {
+	int order = get_buddy_order(size);
 	block start = heap_start;
-	while(start && !(start->free && start->size >= size)) {
+	while(start && !(start->free && start->buddy_order >= order)) {
+
 		*last = start;
 		start = start->next;
 	}
@@ -48,59 +125,57 @@ void copy_block(block src, block dest) {
 }
 
 block extend_heap(block last, size_t size) {
-	unsigned int sb;
+	size_t sb = sysconf(_SC_PAGESIZE);
 	block b = sbrk(0);
-	sb = (uintptr_t)(sbrk(sysconf(_SC_PAGESIZE)));
 
-	if (sb < 0) {
+	if (sbrk(block_size() + sb) == (void *) -1) {
  		/* sbrk fails , return NULL */
 		errno = ENOMEM;
 		return (NULL);
 	}
-  mlock(b, sb);
-	b->size = size;
-	b->next = NULL;
-	b->prev = last;
-	b->ptr = b->data;
-	if (last) {
-		last->next = b;
+
+	while (sb < size) {
+		sb += sysconf(_SC_PAGESIZE);
+		if (sbrk(block_size() + sb) == (void *) -1) {
+	 		/* sbrk fails , return NULL */
+			errno = ENOMEM;
+			return (NULL);
+		}
 	}
-	b->free = 0;
-	munlock(b, sb);
+
+  if(mlock(b, sb) == 0) {
+		b->size = sb; // size of the new block is page size
+		b->buddy_order = get_buddy_order(sb);
+		b->next = NULL;
+		b->prev = last;
+		b->ptr = b->data;
+		if (last) {
+			last->next = b;
+		}
+		b->free = 1;
+		munlock(b, sb);
+	} else {
+		/* sbrk fails , return NULL */
+		errno = ENOMEM;
+		return (NULL);
+	}
 	return (b);
+
 }
 
 void split_block(block b, size_t s) {
-	block new;
-	new = (block)(b->data + s);
-	new->size = b->size - s - block_size() ;
-	new->next = b->next;
-	new->prev = b;
-	new->free = 1;
-	new->ptr = new->data;
-	b->size = s;
-	b->next = new;
-	if (new->next) {
-		new->next->prev = new;
+	int required_order = get_buddy_order(s);
+	while (b->buddy_order != required_order) {
+		buddy_split(b);
 	}
 }
 
 int valid_address(void *heap_start, void *p) {
 	if(heap_start) {
-		if(p > heap_start && p < sbrk(0)) { // if the pointer is between the heap start and current break, then it is a valid address
+		if(p > heap_start && p < sbrk(0)) { // if the pointer is between the heap start and current break, then it is a valid
+			//block b = get_block(p);
 			return (p == get_block(p)->ptr); // we have field ptr pointing to the field data, if b->ptr == b->data, then b is probably (very probably) a valid block
 		}
 	}
 	return (0);
-}
-
-block join_free_chunks(block b) {
-	if (b->next && b->next->free) {
-		b->size += b->next->size + block_size();
-		b->next = b->next->next;
-		if (b->next) {
-			b->next->prev = b;
-		}
-	}
-	return (b);
 }

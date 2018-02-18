@@ -4,47 +4,51 @@
 
 int main(int argc, char **argv)
 {
-  printf("sizeof(int) = %d bytes\n", (int) sizeof(int));
-  //int i = 0;
-  size_t size = 2048;
-  size_t num = 2048*2048, ssize = 16;
+  size_t size = 34;
+  size_t big = 2032;
 
-  void *mem = malloc(size);
-  printf("Successfully malloc'd %zu bytes at addr %p\n", size, mem);
+	void *mem = malloc(size);
+  printf("Successfully malloc'd block %p of size %zd \n", mem, size);
   assert(mem != NULL);
 
-  void *mem2 = malloc(size);
-  printf("Successfully malloc'd %zu bytes at addr %p\n", size, mem2);
-  assert(mem2 != NULL);
   free(mem);
-  printf("Successfully free'd %zu bytes from addr %p\n", size, mem2);
-  free(mem2);
-  printf("Successfully free'd %zu bytes from addr %p\n", size, mem);
+  printf("Successfully free'd block %p of size %zd \n", mem, size);
 
-  void *mem3 = malloc(2*size);
-  printf("Successfully malloc'd %zu bytes at addr %p\n", 2*size, mem3);
+  void *mem1 = malloc(size);
+  printf("Successfully malloc'd block %p of size %zd \n", mem1, size);
+  assert(mem1 != NULL);
+
+  void *mem2 = malloc(size*2);
+  printf("Successfully malloc'd block %p of size %zd \n", mem2, size);
+  assert(mem2 != NULL);
+
+  void *mem3 = malloc(size);
+  printf("Successfully malloc'd block %p of size %zd \n", mem3, size);
   assert(mem3 != NULL);
 
-  void *mem4 = calloc(3, size);
-  printf("Successfully malloc'd %zu bytes at addr %p\n", 3*size, mem4);
+  void *mem4 = malloc(big*12);
+  printf("Successfully malloc'd block %p of size %zd \n", mem4, big);
   assert(mem4 != NULL);
-  free(mem4);
-  printf("Successfully free'd %zu bytes from addr %p\n", size, mem3);
 
-  void *mem5 = realloc(mem3, 3*size);
-  printf("Successfully malloc'd %zu bytes at addr %p\n", 2*size, mem5);
+  free(mem3);
+  printf("Successfully free'd block %p of size %zd \n", mem, size);
+
+  void *mem5 = calloc(5, size);
+  printf("Successfully calloc'd block %p of size %zd * 5\n", mem5, size);
   assert(mem5 != NULL);
 
-  void *memptr = NULL;
-  int pos = posix_memalign((void **)&memptr, num, size);
-  if (pos == 0)
-    printf("Successfully malloc'd %zu bytes at addr %p\n", num*size, memptr);
+  void *mem6 = NULL;
+  int success = posix_memalign((void **)&mem6, size*2, 16);
+  printf("Successfully posix alloc'd block %p of size %zd\n", mem6, size);
+  assert(success == 0);
 
-  void *ptr = memalign(num, ssize);
-  printf("Successfully malloc'd %zu bytes at addr %p\n", num*size, ptr);
+  void *mem7 = realloc(mem5, 5*size);
+  printf("Successfully realloc'd block to %p of size %zd from %p\n", mem7, size, mem5);
+  assert(mem7 != NULL);
 
-  void *ptr1 = memalign(num, ssize);
-  printf("Successfully malloc'd %zu bytes at addr %p\n", num*size, ptr1);
+  void *mem8 = realloc(mem7, 32*size);
+  printf("Successfully realloc'd block to %p of size %zd from %p\n", mem8, size, mem7);
+  assert(mem8 != NULL);
 
   return 0;
 }

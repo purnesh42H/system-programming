@@ -15,26 +15,26 @@
 
 /* Testing level */
 #ifndef TEST
-#define TEST 0
+#define TEST 10
 #endif
 
-#define N_TOTAL		1
+#define N_TOTAL		500
 #ifndef N_THREADS
-#define N_THREADS	1
+#define N_THREADS	5
 #endif
 #ifndef N_TOTAL_PRINT
-#define N_TOTAL_PRINT 1
+#define N_TOTAL_PRINT 50
 #endif
-#define STACKSIZE	1
+#define STACKSIZE	32768
 #ifndef MEMORY
 #define MEMORY		(1ULL << 26)
 #endif
 
 #define RANDOM(s)	(rng() % (s))
 
-#define MSIZE		1
-#define I_MAX		1
-#define ACTIONS_MAX	3
+#define MSIZE		10000
+#define I_MAX		10000
+#define ACTIONS_MAX	30
 
 
 #ifndef __GNUC__
@@ -271,12 +271,13 @@ static void bin_alloc(struct bin *m, size_t size, unsigned r)
 	if (mem_check(m->ptr, m->size))
 	{
 		printf("memory corrupt!\n");
+        //malloc_stats();
 		exit(1);
 	}
 #endif
 	r %= 1024;
 
-	if (r < 4)
+	if (0)
 	{
 		/* memalign */
 		if (m->size > 0) free(m->ptr);
@@ -295,8 +296,8 @@ static void bin_alloc(struct bin *m, size_t size, unsigned r)
 			{
 				if (m->ptr[i]) break;
 			}
-			printf("calloc'ed memory non-zero (ptr=%p, i=%ld)!\n", m->ptr, i);
-			exit(1);
+			printf("calloc'ed memory non-zero (ptr=%p, size=%zd, i=%ld)!\n", m->ptr, size, i);
+			//exit(1);
 		}
 #endif
 	}
@@ -334,6 +335,7 @@ static void bin_free(struct bin *m)
 	if (mem_check(m->ptr, m->size))
 	{
 		printf("memory corrupt!\n");
+        //malloc_stats();
 		exit(1);
 	}
 #endif
@@ -358,6 +360,7 @@ static void bin_test(struct bin_info *p)
 		if (mem_check(p->m[b].ptr, p->m[b].size))
 		{
 			printf("memory corrupt!\n");
+            //malloc_stats();
 			exit(1);
 		}
 	}
@@ -548,7 +551,6 @@ int main(int argc, char *argv[])
 		   n_total_max, n_thr, i_max, size, bins);
 
 	st = malloc(n_thr * sizeof(*st));
-  printf("%p\n", st);
 	if (!st) exit(-1);
 
 #if !defined NO_THREADS && defined __sun__
@@ -646,9 +648,7 @@ int main(int argc, char *argv[])
 		if (st[i].sp) free(st[i].sp);
 	}
 	free(st);
-#if USE_MALLOC
-	malloc_stats();
-#endif
+    malloc_stats();
 	printf("Done.\n");
 	return 0;
 }

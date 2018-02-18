@@ -20,11 +20,11 @@ libmalloc.so: utils.o malloc.o calloc.o free.o realloc.o posix_memalign.o memali
 %.o: %.c ${HEADERS}
 	$(CC) $(CFLAGS) $< -c -o $@
 
-check1:	libmalloc.so test1 t-test1
-	LD_PRELOAD=`pwd`/libmalloc.so ./t-test1
-
 check:	libmalloc.so ${TESTS}
 	LD_PRELOAD=`pwd`/libmalloc.so ./test1
+
+check1:	libmalloc.so test1 t-test1
+	LD_PRELOAD=`pwd`/libmalloc.so ./t-test1
 
 dist: clean
 	dir=`basename $$PWD`; cd ..; tar cvf $$dir.tar ./$$dir; gzip $$dir.tar
