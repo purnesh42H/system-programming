@@ -73,7 +73,7 @@ struct memory_block {
     - If valid, get the block pointed by pointer. Free the block.
     - Join the buddy blocks if they are also free and merge them to a single block. Increase the order and size accordingly.
 
-- Important Design Decisions
-	- I am making sure that my block is always aligned so that while allocating memory I have to only align the requested size.
-	- While traversing the linked list to find the free block I am keeping track of last visited node so the malloc function can easily extends the end of the heap if no fitting chunk found
-	- the split_block function in [utils.c](utils.c) cut the block passed in argument to make data block of the wanted size and all splitted blocks become part of linked list, so that next time there wont be need to split if any of the existing can satisfy the requested memory.
+  ## Important Design Decisions
+  	- I am making sure that my block is always aligned so that while allocating memory I have to only align the requested size.
+  	- While traversing the linked list to find the free block I am keeping track of last visited node so the malloc function can easily extends the end of the heap if no fitting chunk found
+  	- the split_block function in [utils.c](utils.c) cut the block passed in argument to make data block of the wanted size and all splitted blocks become part of linked list, so that next time there wont be need to split if any of the existing can satisfy the requested memory.
