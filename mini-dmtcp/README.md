@@ -1,3 +1,13 @@
+# Overview
+This is a mini-DMTCP. DMTCP is a widely used software package for checkpoint-restart: http://dmtcp.sourceforge.net. However, you do not need any prior knowledge of DMTCP for this assignment. This software is self-contained.
+
+There is a shared library, libckpt.so. Given an arbitrary application in C or C++, you will then run it with this library with the following command-line:
+LD_PRELOAD=/path/to/libckpt.so ./myprog
+where /path/to/libckpt.so must be an absolute pathname for the libckpt.so.
+
+A Makefile is provided.
+(Note that the memory layout of a process is stored in /proc/PID/maps. The fields such as rwxp can be read as "read", "write", "execute" and "private". Naturally, rwx refer to the permissions. Private refers to private memory. If you see "s" instead of "p", then it is shared memory.)
+
 # How to build
  - Run "make clean" to removes all object/binary files
  - Run "make check"
