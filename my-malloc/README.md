@@ -53,9 +53,7 @@ struct memory_block {
 
 ## Malloc Logic
 	- First 8-byte align the requested size
-	- If heap_start is initialized,
-		  – Search for a free chunk wide enough
-      - This will become start of the heap
+	- If heap_start is initialized, search for a free chunk wide enough. This will become start of the heap
   - While searching, keep splitting the blocks using the buddy logic. Read Buddy Allocation [here](https://en.wikipedia.org/wiki/Buddy_memory_allocation)
   - Assign the requested memory to the block wide enough.
 	– If new chunk is found:
