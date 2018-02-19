@@ -38,7 +38,7 @@ int main(int argc, char **argv)
   assert(mem5 != NULL);
 
   void *mem6 = NULL;
-  int success = posix_memalign((void **)&mem6, size*2, 16);
+  int success = posix_memalign((void **)&mem6, 16, size*2);
   printf("Successfully posix alloc'd block %p of size %zd\n", mem6, size*2);
   assert(success == 0);
 
@@ -50,7 +50,7 @@ int main(int argc, char **argv)
   printf("Successfully realloc'd block to %p of size %zd from %p\n", mem8, size*32, mem7);
   assert(mem8 != NULL);
 
-  void *mem9 = memalign(size * 20, 16);
+  void *mem9 = memalign(16, size * 20);
   printf("Successfully memaligned'd block to %p of size %zd\n", mem9, size * 20);
   assert(mem9 != NULL);
 
