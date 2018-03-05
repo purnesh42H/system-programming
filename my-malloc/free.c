@@ -6,19 +6,20 @@ void free(void *p) {
 	if (valid_address(heap_start, p)) {
 		b = get_block(p); // get the block to free
 		if (b->size > THRESHOLD) {
-			munmap(b, b->size);
 			if (b->prev) {
 				b->prev->next = b->next;
 			} else {
 				mmap_start = NULL;
 			}
 			b->free = 1;
+			munmap(b, b->size);
 		} else {
 			if(mlock(b, b->size) == 0) {
 				b->free = 1;
 				/* join previous chunk if possible */
 				if ((b->prev && b->prev->free)) { // if previous block is also free or next block join it with block b
-					b = buddy_join(b->prev);			  // When we free a chunk, and its neighbors are also free, we can fusion them in one bigger chunk
+					b = buddy_join(b->prev);
+					munlock(b, b->size);		  // When we free a chunk, and its neighbors are also free, we can fusion them in one bigger chunk
 				}
 				if (b->next) {
 					b = buddy_join(b); // We have to fusion with next chunk

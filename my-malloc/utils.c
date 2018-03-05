@@ -80,16 +80,16 @@ block get_block (void *p) {
 	return (p = tmp -= block_size());
 }
 
-block insert_block(void *heap_start, block new, size_t s) {
+block insert_block(void *head, block new, size_t s) {
 	block start;
-	if (heap_start) {
-		start = heap_start;
+	if (head) {
+		start = head;
 		while(start->next != NULL) {
 			start = start->next;
 		}
 	}
-	new->size = s;
-	if (heap_start) {
+	new->size = s - block_size();
+	if (head) {
 		start->next = new;
 		new->prev = start;
 	} else {
@@ -104,11 +104,35 @@ block insert_block(void *heap_start, block new, size_t s) {
 block find_free_block(void *heap_start, block *last, size_t size) {
 	int order = get_buddy_order(size);
 	block start = heap_start;
-	while(start && !(start->free && start->buddy_order >= order)) {
-
+	while(start && !(start->free && start->buddy_order == order)) {
+		long long int diffr = (void *)start->next - (void *)sbrk(0);
+		long long int diffr2 = (void *)start->next - (void *)start;
+		if (start->next && (diffr >= 0 || diffr2 <= 0)) {
+			start->next = NULL;
+			*last = start;
+			start = NULL;
+			break;
+		}
 		*last = start;
 		start = start->next;
 	}
+
+	if (!start) {
+		start = heap_start;
+		while(start && !(start->free && start->buddy_order > order)) {
+			long long int diffr = (void *)start->next - (void *)sbrk(0);
+			long long int diffr2 = (void *)start->next - (void *)start;
+			if (start->next && (diffr >= 0 || diffr2 <= 0)) {
+				start->next = NULL;
+				start = NULL;
+				*last = start;
+				break;
+		  }
+			*last = start;
+			start = start->next;
+		}
+	}
+
 	return start;
 }
 
@@ -143,7 +167,7 @@ block extend_heap(block last, size_t size) {
 	}
 
 	if(mlock(b, sb) == 0) {
-		b->size = sb; // size of the new block is page size
+		b->size = sb + block_size(); // size of the new block is page size
 		b->buddy_order = get_buddy_order(sb);
 		b->next = NULL;
 		b->prev = last;
@@ -159,7 +183,6 @@ block extend_heap(block last, size_t size) {
 		return (NULL);
 	}
 	return (b);
-
 }
 
 void split_block(block b, size_t s) {

@@ -13,6 +13,7 @@ void *malloc(size_t size) {
 	block start, last;
 	size_t s;
 	s = align8(size); // 8-byte alignment for every size
+
 	if (s > THRESHOLD) {
 		start = mmap_malloc(s);
 		if (!start) {
@@ -25,8 +26,8 @@ void *malloc(size_t size) {
 		if (start) {
 			if (mlock(start, s) == 0) {
 				if (start->buddy_order > get_buddy_order(s)) {
-				  printf("splitting block %zd to %zd\n", s, start->size);
-					fflush(stdout);
+				  //printf("splitting block %zd to %zd\n", s, start->size);
+					//fflush(stdout);
 	 				split_block(start, s); // splitting the block if the requested memory can be allocated in a smaller block
 				}
 	 			start->free = 0; // marking the memory region occupied
@@ -36,8 +37,8 @@ void *malloc(size_t size) {
  	 	 	 	return(NULL);
 			}
 		} else {
-			printf("No fitting block , extend the heap\n");
-			fflush(stdout);
+			//printf("No fitting block , extend the heap\n");
+			//fflush(stdout);
 		 	start = extend_heap(last, s); // No fitting block , extend the heap
 			if (!start) {
 				errno = ENOMEM; //Error if no more memory can be allocated
@@ -47,8 +48,8 @@ void *malloc(size_t size) {
 					start->free = 0;
 				} else {
 					if (mlock(start, s) == 0) {
-						printf("splitting block %zd to %zd\n", s, start->size);
-						fflush(stdout);
+						//printf("splitting block %zd to %zd\n", s, start->size);
+						//fflush(stdout);
 		 				split_block(start, s); // splitting the block if the requested memory can be allocated in a smaller block
 						start->free = 0;
 						munlock(start, s);
@@ -60,8 +61,8 @@ void *malloc(size_t size) {
 			}
 	 	}
 	} else {
-		printf("No fitting block , extend the heap\n");
-		fflush(stdout);
+		//printf("No fitting block , extend the heap\n");
+		//fflush(stdout);
 		start = extend_heap(NULL, s); // extending the heap for the first time
 		if (!start) {
 			errno = ENOMEM; // Error if no more memory can be allocated
@@ -72,8 +73,8 @@ void *malloc(size_t size) {
 				 heap_start = start; // after allocation current block will become the heap_start as heap break will increase
 			 } else {
 				 if (mlock(start, s) == 0) {
-					 printf("splitting block %zd to %zd\n", s, start->size);
-					 fflush(stdout);
+					 //printf("splitting block %zd to %zd\n", s, start->size);
+					 //fflush(stdout);
 					 split_block(start, s); // splitting the block if the requested memory can be allocated in a smaller block
 					 start->free = 0;
 					 heap_start = start; // after allocation current block will become the heap_start as heap break will increase
