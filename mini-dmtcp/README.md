@@ -28,4 +28,4 @@ LD_PRELOAD=`pwd`/libckpt.so ./hello"
 
 
 # Limitations
- - Sometimes receives segmentation fault while setting the context during restart
+ - May give out compilation/stack smashing errors on old gcc
