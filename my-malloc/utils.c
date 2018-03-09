@@ -34,6 +34,10 @@ int get_buddy_order(size_t s) {
 }
 
 void buddy_split(block b) {
+	long long int diffr = (void *)(b->data + (b->size/2)) - (void *)sbrk(0);
+	if (diffr >= 0) {
+		extend_heap(b, b->size);
+	}
 	b->size = b->size / 2;
 	block newb = (block)(b->data + b->size);
 	newb->size = b->size - block_size();

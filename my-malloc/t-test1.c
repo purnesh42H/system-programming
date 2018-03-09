@@ -9,7 +9,7 @@
  */
 
 #define USE_PTHREADS	1
-#define USE_MALLOC	1
+#define USE_MALLOC	0
 #define USE_SPROC	0
 #define USE_THR		0
 
@@ -18,9 +18,9 @@
 #define TEST 0
 #endif
 
-#define N_TOTAL	100
+#define N_TOTAL		100
 #ifndef N_THREADS
-#define N_THREADS	1
+#define N_THREADS	2
 #endif
 #ifndef N_TOTAL_PRINT
 #define N_TOTAL_PRINT 50
@@ -192,7 +192,7 @@ static inline unsigned rng(void)
    realloc() can dwarf all other execution times.  Avoid this with a
    size threshold. */
 #ifndef REALLOC_MAX
-#define REALLOC_MAX	200
+#define REALLOC_MAX	2000
 #endif
 
 struct bin
