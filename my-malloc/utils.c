@@ -80,25 +80,36 @@ block get_block (void *p) {
 	return (p = tmp -= block_size());
 }
 
-block insert_block(void *head, block new, size_t s) {
-	block start;
+block insert_block(void *head, size_t s) {
+	block start, new;
 	if (head) {
 		start = head;
 		while(start->next != NULL) {
 			start = start->next;
 		}
 	}
-	new->size = s - block_size();
+
 	if (head) {
+		void *addr = mmap(start->data + start->size, s, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
+		if (addr == MAP_FAILED) {
+			return(NULL);
+		}
+		new = (block)addr;
 		start->next = new;
 		new->prev = start;
 	} else {
+		void *addr = mmap(0, s + block_size(), PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
+		if (addr == MAP_FAILED) {
+			return(NULL);
+		}
+		new = (block)addr;
 		new->prev = NULL;
 	}
+	new->size = s - block_size();
 	new->next = NULL;
 	new->free = 0;
 	new->ptr = new->data;
-	return new;
+	return (new);
 }
 
 block find_free_block(void *heap_start, block *last, size_t size) {

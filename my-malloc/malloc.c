@@ -90,16 +90,11 @@ void *malloc(size_t size) {
 }
 
 block mmap_malloc(size_t s) {
-	block new;
-	void *addr = mmap(0, s, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
+	block new = insert_block(mmap_start, s);
 
-	if (addr == MAP_FAILED) {
-		errno = ENOMEM; //Error if no more memory can be allocated
-		return(NULL);
-	}
-
-	new = insert_block(mmap_start, (block)addr, s);
-	if (!mmap_start) {
+	if (!new) {
+		errno = ENOMEM;
+	} else if (!mmap_start) {
 		mmap_start = new;
 	}
 

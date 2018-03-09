@@ -32,7 +32,7 @@ size_t alignn(size_t s, size_t alignment);
 size_t align8(size_t s);
 size_t block_size();
 block get_block (void *p);
-block insert_block(void *heap_start, block new, size_t s);
+block insert_block(void *heap_start, size_t s);
 block find_free_block(void *heap_start, block *last, size_t size);
 void copy_block(block src, block dest);
 block extend_heap(block last, size_t size);
