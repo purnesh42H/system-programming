@@ -11,6 +11,9 @@ void free(void *p) {
 			} else {
 				mmap_start = NULL;
 			}
+			if(b->next) {
+				b->next->prev = b->prev;
+			}
 			b->free = 1;
 			munmap(b, b->size);
 		} else {

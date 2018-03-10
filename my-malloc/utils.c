@@ -44,10 +44,10 @@ int get_buddy_order(size_t s) {
 }
 
 void buddy_split(block b) {
-	long long int diffr = (void *)sbrk(0) - (void *)b->data;
-	if (diffr < (b->size)/2) {
+	long long int diffr = (void *)(b->data + b->size/2) - (void *)sbrk(0);
+	if (diffr >= 0) {
 		printf("accessing out of heap %p-%p\n", b, b->next);
-		extend_heap(b, b->size);
+		b = extend_heap(b, b->size);
 	}
 	b->size = b->size / 2;
 	block newb = (block)(b->data + b->size);
@@ -105,7 +105,7 @@ block insert_block(void *head, size_t s) {
 	}
 
 	if (head) {
-		void *addr = mmap(start->data + start->size, s, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
+		void *addr = mmap(start->data, s + block_size(), PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
 		if (addr == MAP_FAILED) {
 			return(NULL);
 		}
@@ -130,7 +130,7 @@ block insert_block(void *head, size_t s) {
 block find_free_block(void *heap_start, block *last, size_t size) {
 	int order = get_buddy_order(size);
 	block start = heap_start;
-	while(start && !(start->free && start->buddy_order == order)) {
+	while(start && !(start->free && start->buddy_order == order && start->size >= size)) {
 		long long int diffr = (void *)start->next - (void *)sbrk(0);
 		long long int diffr2 = (void *)start->next - (void *)start;
 		if (start->next && (diffr >= 0 || diffr2 <= 0)) {
@@ -145,7 +145,7 @@ block find_free_block(void *heap_start, block *last, size_t size) {
 
 	if (!start) {
 		start = heap_start;
-		while(start && !(start->free && start->buddy_order > order)) {
+		while(start && !(start->free && start->buddy_order > order && (start->size)/2 >= size)) {
 			long long int diffr = (void *)start->next - (void *)sbrk(0);
 			long long int diffr2 = (void *)start->next - (void *)start;
 			if (start->next && (diffr >= 0 || diffr2 <= 0)) {
@@ -177,7 +177,7 @@ block extend_heap(block last, size_t size) {
 	size_t sb = sysconf(_SC_PAGESIZE);
 	block b = sbrk(0);
 
-	if (sbrk(block_size() + sb) == (void *) -1) {
+	if (sbrk(sb) == (void *) -1) {
  		/* sbrk fails , return NULL */
 		errno = ENOMEM;
 		return (NULL);
@@ -185,7 +185,7 @@ block extend_heap(block last, size_t size) {
 
 	while (sb < size) {
 		sb += sysconf(_SC_PAGESIZE);
-		if (sbrk(block_size() + sb) == (void *) -1) {
+		if (sbrk(sb) == (void *) -1) {
 	 		/* sbrk fails , return NULL */
 			errno = ENOMEM;
 			return (NULL);
@@ -193,8 +193,8 @@ block extend_heap(block last, size_t size) {
 	}
 
 	if(mlock(b, sb) == 0) {
-		b->size = sb + block_size(); // size of the new block is page size
-		b->buddy_order = get_buddy_order(sb);
+		b->size = sb - block_size(); // size of the new block is page size
+		b->buddy_order = get_buddy_order(b->size);
 		b->next = NULL;
 		b->prev = last;
 		b->ptr = b->data;

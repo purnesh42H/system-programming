@@ -17,6 +17,7 @@ void *malloc(size_t size) {
 	if (s > THRESHOLD) {
 		start = mmap_malloc(s);
 		if (!start) {
+			printf("no free mmap\n");
 			errno = ENOMEM; //Error if no more memory can be allocated
 			return(NULL);
 		}
