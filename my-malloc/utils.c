@@ -120,7 +120,7 @@ block insert_block(void *head, size_t s) {
 		new = (block)addr;
 		new->prev = NULL;
 	}
-	new->size = s - block_size();
+	new->size = s;
 	new->next = NULL;
 	new->free = 0;
 	new->ptr = new->data;
@@ -145,7 +145,7 @@ block find_free_block(void *heap_start, block *last, size_t size) {
 
 	if (!start) {
 		start = heap_start;
-		while(start && !(start->free && start->buddy_order > order && (start->size)/2 >= size)) {
+		while(start && !(start->free && start->buddy_order > order && (start->size/2) >= size)) {
 			long long int diffr = (void *)start->next - (void *)sbrk(0);
 			long long int diffr2 = (void *)start->next - (void *)start;
 			if (start->next && (diffr >= 0 || diffr2 <= 0)) {

@@ -14,10 +14,9 @@ void *malloc(size_t size) {
 	size_t s;
 	s = align8(size); // 8-byte alignment for every size
 
-	if (s > THRESHOLD) {
+	if (s >= THRESHOLD) {
 		start = mmap_malloc(s);
 		if (!start) {
-			printf("no free mmap\n");
 			errno = ENOMEM; //Error if no more memory can be allocated
 			return(NULL);
 		}

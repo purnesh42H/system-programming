@@ -19,6 +19,7 @@ block extend_heap_realloc(void *new, block last, size_t size) {
 		}
 	}
 
+	if (mlock(new, sb) == 0) {
 	b = get_block(new);
 	b->size = sb - block_size(); // size of the new block is page size
 	b->buddy_order = get_buddy_order(b->size);
@@ -31,8 +32,10 @@ block extend_heap_realloc(void *new, block last, size_t size) {
 		last->size = new_size;
 		last->buddy_order = get_buddy_order(new_size);
 	}
-
 	b->free = 1;
+	} else {
+		return (NULL);
+	}
 	return (b);
 }
 
@@ -51,12 +54,14 @@ void *realloc(void *p, size_t size) {
 				last = last->next;
 			}
 			test = extend_heap_realloc(p, last, diffr);
+			printf("%p\n", test);
 		}
 	}
+
 	if (test || valid_address (heap_start, mmap_start, p)) { // Reallocate only if its a valid address, as we need to free the old address
 		s = align8(size);
  		b = get_block(p);
-		if ((size < THRESHOLD || b->size < THRESHOLD) && b->size >= s) {
+		if (size < THRESHOLD && b->size < THRESHOLD && b->size >= s) {
 			if (mlock(b, s) == 0) {
 				if (b->buddy_order > get_buddy_order(s)) { // Same as malloc, split if chunk is bigger than required memory
 	 				split_block (b, s);
@@ -68,7 +73,7 @@ void *realloc(void *p, size_t size) {
  	 	 	 	return(NULL);
 			}
 		} else {
-			if ((size < THRESHOLD || b->size < THRESHOLD) && b->next && b->next->free && (b->size + block_size() + b->next->size) >= s) { // try joining the next free chunk
+			if (size < THRESHOLD && b->size < THRESHOLD && b->next && b->next->free && (b->size + block_size() + b->next->size) >= s) { // try joining the next free chunk
 				if (mlock(b, s) == 0) {
 					buddy_join(b);
 					if (b->buddy_order > get_buddy_order(s)) {
