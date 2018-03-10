@@ -6,9 +6,8 @@ void *realloc(void *p, size_t size) {
 	void *newp = NULL;
 	if (!p) // if pointer is null just allocate the memory to current break
 		return (malloc(size));
-	if (valid_address (heap_start, p)) { // Reallocate only if its a valid address, as we need to free the old address
+	if (valid_address (heap_start, mmap_start, p)) { // Reallocate only if its a valid address, as we need to free the old address
 		s = align8(size);
-
  		b = get_block(p);
 		if ((size < THRESHOLD || b->size < THRESHOLD) && b->size >= s) {
 

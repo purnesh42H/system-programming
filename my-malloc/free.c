@@ -3,7 +3,7 @@
 void free(void *p) {
 	block b;
   // We have to check if the address is valid i.e. it is a pointer who has been already allocated the memory
-	if (valid_address(heap_start, p)) {
+	if (valid_address(heap_start, mmap_start, p)) {
 		b = get_block(p); // get the block to free
 		if (b->size > THRESHOLD) {
 			if (b->prev) {

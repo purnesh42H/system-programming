@@ -2,6 +2,16 @@
 
 const int SMALLEST_BLOCK = 64;
 
+int is_two_power(size_t s) {
+	while (s > 1) {
+		if (s % 2 != 0) {
+			return -1;
+		}
+		s = s / 2;
+	}
+	return 0;
+}
+
 int get_two_power(size_t s) {
 	int power = 0;
 	while (s > 1) {
@@ -34,8 +44,9 @@ int get_buddy_order(size_t s) {
 }
 
 void buddy_split(block b) {
-	long long int diffr = (void *)(b->data + (b->size/2)) - (void *)sbrk(0);
-	if (diffr >= 0) {
+	long long int diffr = (void *)sbrk(0) - (void *)b->data;
+	if (diffr < (b->size)/2) {
+		printf("accessing out of heap %p-%p\n", b, b->next);
 		extend_heap(b, b->size);
 	}
 	b->size = b->size / 2;
@@ -207,7 +218,12 @@ void split_block(block b, size_t s) {
 	}
 }
 
-int valid_address(void *heap_start, void *p) {
+int valid_address(void *heap_start, void *mmap_start, void *p) {
+	if (mmap_start) {
+		if (p > mmap_start) {
+			return (p == get_block(p)->ptr);
+		}
+	}
 	if(heap_start) {
 		if(p > heap_start && p < sbrk(0)) { // if the pointer is between the heap start and current break, then it is a valid
 			//block b = get_block(p);
