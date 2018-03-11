@@ -28,7 +28,7 @@ block join_free_chunks(block b) {
 		if (b->next) {
 			b->next->prev = b;
 		}
-		b->buddy_order += 1;
+		b->buddy_order = get_buddy_order(b->size);
 	}
 	return (b);
 }
