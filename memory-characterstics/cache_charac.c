@@ -52,7 +52,7 @@ double avg_elapsed(int size, int stride, int fd, int param) {
 
 int main(int argc, char *argv[]) {
 	// Plot N vs Avg Iteration Time graph to see the size behaviour of cache
-	int fd = open("./avg_time_iter.txt", O_CREAT | O_WRONLY | O_APPEND, 0666);
+	int fd = open("./avg_time_iter.txt", O_CREAT | O_WRONLY, 0666);
 
 	int i = 0;
 	for(i = 0; i < 20; i++) {
@@ -62,7 +62,7 @@ int main(int argc, char *argv[]) {
 	close(fd);
 
 	// Plot N vs Avg Iteration Time graph to see the size behaviour of cache
-	int fd1 = open("./avg_time_iter_stride.txt", O_CREAT | O_WRONLY | O_APPEND, 0666);
+	int fd1 = open("./avg_time_iter_stride.txt", O_CREAT | O_WRONLY, 0666);
 
 	i = 0;
 	for(i = 0; i < 15; i++) {
