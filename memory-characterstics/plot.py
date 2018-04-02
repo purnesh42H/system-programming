@@ -24,7 +24,7 @@ def read_file(path):
 x, y = read_file(cache_size)
 
 plt.plot(x, y, 'ro')
-plt.axis([0, 2**20, 0, 25000])
+plt.axis([0, 2**20, 0, 30000])
 plt.show()
 
 x, y = read_file(average_miss_delay)

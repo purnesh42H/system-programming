@@ -65,7 +65,7 @@ int main(int argc, char *argv[]) {
 	int fd1 = open("./avg_time_iter_stride.txt", O_CREAT | O_WRONLY, 0666);
 
 	i = 0;
-	for(i = 0; i < 18; i++) {
+	for(i = 0; i < 19; i++) {
 		printf("%lf\n", avg_elapsed(2 << 19, 2 << i, fd1, 1));
 	}
 
