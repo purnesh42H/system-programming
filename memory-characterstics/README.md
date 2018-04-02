@@ -4,6 +4,12 @@
     - A plaform-independent C program that approximates the size of main memory (RAM). See [here](calc_ram_size.c)
   - Measure the characteristics of Cache
     -  A C program to measure the cache behavior using Saavadra and Smith's methodology. See [here](cache_charac.c). There are two graphs presented, [ArraySize(N) vs Avg Iteration Time](NvsAvgIterTime_Machine1.png), [Stride vs Avg Iteration Time](SvsAvgIterTime_Machine1.png) to describe the inferred cache parameters. The tests are performed on two different machines. The graphs are generated using a python program. See [here](plot.py).
+    
+# How to run
+ - Run "make" to compile
+ - Run "make check" to calculate the ram size
+ - Run "make check1" to fetch the cache characterstics
+    - Run plot.py to plot the graphs for values generated from "make check1"
  
 # Compute the size of RAM
 This program gives you an approximate size of your RAM. I have followed below strategy to get as close to correct RAM size.
