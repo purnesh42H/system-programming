@@ -14,9 +14,14 @@ int main(int argc, char *argv[]) {
 	malloc_counter = 2;
 	int failed = 0;
 	int add_or_multiply = 0;
+	int malloc_counter_changed = 0;
 	size_t diff = 0;
 	void *p = NULL;
+	
 	while(1) {
+		if (malloc_counter < 0 || failed > 10) {
+			break;
+		}
 		if (allocation_size > last_allocated) {
 			diff = allocation_size - last_allocated;
 		} else {
@@ -27,11 +32,15 @@ int main(int argc, char *argv[]) {
 
 		if (errno == ENOMEM) {
 			printf("Failed to allocate size %zd. Trying with lesser\n", allocation_size);
-			malloc_counter = 1024;
+			allocation_size = last_allocated;
 			if (add_or_multiply) {
-				allocation_size -= 1024;
-			} else {
-				allocation_size = allocation_size / 2;
+				if (!malloc_counter_changed) {
+					malloc_counter = 2048;
+					malloc_counter_changed = 1;
+				} else {
+					malloc_counter -= malloc_counter / 2;
+				}
+				allocation_size += malloc_counter;
 			}
 			failed += 1;
 		} else {
@@ -43,13 +52,6 @@ int main(int argc, char *argv[]) {
 				allocation_size *= malloc_counter;
 				malloc_counter *= 2;
 			}
-		}
-		if (failed > 10) {
-			if (add_or_multiply) {
-				break;
-			}
-			failed -= 5;
-			add_or_multiply = 1;
 		}
 	}
 	munmap(p, last_allocated);

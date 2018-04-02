@@ -24,11 +24,11 @@ def read_file(path):
 x, y = read_file(cache_size)
 
 plt.plot(x, y, 'ro')
-plt.axis([0, 2**20, 0, 429000])
+plt.axis([0, 2**20, 0, 25000])
 plt.show()
 
 x, y = read_file(average_miss_delay)
 
 plt.plot(x, y, 'ro')
-plt.axis([0, 2**15, 0, 200000])
+plt.axis([0, 2**18, 0, 90000])
 plt.show()
