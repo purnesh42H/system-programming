@@ -21,7 +21,7 @@ While the former help us in calculating the approximate size of the cache, the l
 
 ## Cache Size
 - Characterstics from graph [ArraySize(N) vs Avg Iteration Time](NvsAvgIterTime_Machine1.png)
-  - It can be seen when the array size is small, the average iteration time is huge. It is because time to bring the array to cache dominates the overall iteration time. However, as the size increases, after the first cache miss, the susequent reads are fast as they are from the cache and hence the average iteration time decreases and becomes constant after a while as you keep increasing the array size. The reason for the constant low average iteration time is the fact that the cache is able to accomodate the entire array in the cache after the first miss. Had the array size been just big to not be accomadated in the cache at once, there would be a sudden increase in the average iteration time(till the one you see for array size 2 and 4) for subsequent reads after the cache limit is reached. For example for machine 1, the cache is able to accomodate the array size of 2^19 bytes.
+  - It can be seen when the array size is small, the average iteration time is huge. It is because time to bring the array to cache dominates the overall iteration time. However, as the size increases, after the first cache miss, the susequent reads are fast as they are from the cache and hence the average iteration time decreases and becomes constant after a while as you keep increasing the array size. The reason for the constant low average iteration time is the fact that the cache is able to accomodate the entire array in the cache after the first miss. Again when the array size increases even more just big to not be accomadated in the cache at once, there would be a sudden increase in the average iteration time(till the one you see for array size 2 and 4) for subsequent reads after the cache limit is reached. For example for machine 1, the cache is able to accomodate the array size of 2^19 bytes.
  - Technique Used
   To plot the N vs Avg Iteration Time graph, I have kept the stride(=1) as constant and increased the array size by power of 2 upto 19. For each of the iteration I create a float array of given array size and assign random float numbers to it. Then I traverse that array and do following in every iteration:
     - Read the consecutive elements
@@ -38,4 +38,17 @@ This technique helps to get the efficient result with sufficient accuracy as it 
   - It can be seen that when the stride is small the average iteration time is low and keep on increasing with increase in stride. It means the the average iteration time is proportional to stride length. This is due to the fact that when the stride is low the number of cache misses are less but increases when the stride is high. This gives us two characterstics
     - Average Miss Delay - time difference between where there is no miss and when miss starts to occur in each iteration. This can be seen when the stride is 2^14
     - Cache line size - The rate of misses can be easily identified from the graph. The transition that occurs from few iterations having cache misses to every iteration having cache miss gives us the cache line size(See difference when strid is 2^13 and 2^14).
+    
+- Technique Used
+  - I have kept the array size constant to 2^19 and increased the stride from 2 to 2^14. This has made sure that for the highest array size(which won't fit in cache line or atleast in first level cache) the average iteration time is totally dependent on stride length which affects the no. of cache misses or cache line misses. This has helped to see the above mentioned transitions and also made calculation for Average Miss Delay easy.
+  
+  Please note that I am doing the same operation in each iteration as mentioned in "Cache Size" section above.
+  
+## Associativity
+- Characterstics from graph [Stride vs Avg Iteration Time](SvsAvgIterTime_Machine1.png)
+  - Once the stride crosses the C/a boundry, where a is the number of sets in a cache, only a single set is referenced, and the number of elements mapping to this set starts to decrease. When the stride is maximum N(2^19)/2 only two elements are being map to the surviving set. Therefore, if at some point the effect of cache misses disappears, then the point where this occurs using the formula a = N/s gives us the associativity. Otherwise, it is obvious that the cache has to be
+direct mapped. 
+
+## Parameters of TLB
+The phenomena observed when we consider the TLB is the same as for the cache; the only difference is in the particular values of N and s where the changes in behavior occur.
   
