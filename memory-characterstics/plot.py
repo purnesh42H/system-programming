@@ -30,5 +30,5 @@ plt.show()
 x, y = read_file(average_miss_delay)
 
 plt.plot(x, y, 'ro')
-plt.axis([0, 2**18, 0, 9000])
+plt.axis([0, 2**18, 0, 90000])
 plt.show()

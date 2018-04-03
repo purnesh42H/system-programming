@@ -28,9 +28,9 @@ double avg_elapsed(int size, int stride, int fd, int param) {
 	double avg_elapsed = 0.0;
 	for(i = stride; i < size; i += stride) {
 		clock_gettime(CLOCK_REALTIME, &before);
-		double c = a[i] + a[i-1];
+		double c = a[i] + a[i-stride];
 		a[i-stride] = c;
-		printf("%lf\n", a[i-1]);
+		printf("%lf\n", a[i-stride]);
 		clock_gettime(CLOCK_REALTIME, &after);
 		elapsed_nsecs = (after.tv_sec - before.tv_sec) * 1000000000 +
 									(after.tv_nsec - before.tv_nsec);
